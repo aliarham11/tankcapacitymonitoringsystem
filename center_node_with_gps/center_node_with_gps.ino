@@ -178,6 +178,17 @@ double altitude()//get altitude data
   }
 }
 
+float getHeight(String message, String nodeSource, String endData)
+{
+  int indexStart;
+  int indexEnd;
+
+  indexStart = message.indexOf(nodeSource) + 6;
+  indexEnd = message.indexOf(endData);
+  return message.substring(indexStart, indexEnd).toFloat();
+  
+}
+
 void setup() {
   
   pinMode(3,OUTPUT);//The default digital driver pins for the GSM and GPS mode
@@ -221,33 +232,18 @@ void loop() {
       message+=char(incomingData.read());
   }
   
-  if(!incomingData.available())
+  if(!incomingData.available() && message.indexOf("NODE1") > -1 && message.indexOf("NODE2") > -1)
   {
-    if(message!="")
-    {
-      tempData = message.substring(6).toFloat();
-      
-      if(message.indexOf("NODE1") > -1)
-        data1 = tempData;
-      
-      if(message.indexOf("NODE2") > -1)
-        data2 = 72.0;
-      
-      if(data1!=0.0 && data2!=0.0)
-      {
-        averageHeight = (data1 + data2)/2;
-        lat = latitude();
-        lon = longitude();
-        alt = altitude();
-        bundle = String("height=" + (String)averageHeight + "latidude=" + (String)lat  + "longitude=" + (String)lon  + "altitude=" + (String)alt);
-        Serial.println(bundle);
-        Serial.println(' ');
-      }
-      message="";
-      data1=0.0;
-      data2=0.0;
-      averageHeight = 0.0;
-    }
+    data1 = getHeight(message, "NODE1", "en1");
+    data2 = getHeight(message, "NODE2", "en2");
+    averageHeight = (data1 + data2)/2;
+    lat = latitude();
+    lon = longitude();
+    alt = altitude();
+    bundle = String("height=" + (String)averageHeight + "&latidude=" + (String)lat  + "&longitude=" + (String)lon  + "&altitude=" + (String)alt);
+    Serial.println(bundle);
+    message = "";
+
   }  
   delay(5000);
 }
